@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material';
 // mock
-import account from '../../../_mock/account';
+import account from '../../../components/_mock/account';
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
 // components
@@ -38,6 +38,8 @@ export default function Nav({ openNav, onCloseNav }) {
   const { pathname } = useLocation();
 
   const isDesktop = useResponsive('up', 'lg');
+  const tokenString = sessionStorage.getItem('token');
+  const userToken = JSON.parse(tokenString);
 
   useEffect(() => {
     if (openNav) {
@@ -64,7 +66,7 @@ export default function Nav({ openNav, onCloseNav }) {
 
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {account.displayName}
+                {userToken.name}
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>

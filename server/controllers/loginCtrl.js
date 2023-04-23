@@ -19,6 +19,7 @@ const loginCtrl = {
           httpOnly: true,
           sameSite: "strict",
         });
+
         return res.status(200).json({
           token: test.map((item) => item.role),
           name: test.map((item) => item.NguoiThu),

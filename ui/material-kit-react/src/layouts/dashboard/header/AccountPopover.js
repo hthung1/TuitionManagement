@@ -5,7 +5,7 @@ import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover 
 import { Link } from 'react-router-dom';
 
 // mocks_
-import account from '../../../_mock/account';
+import account from '../../../components/_mock/account';
 
 // ----------------------------------------------------------------------
 

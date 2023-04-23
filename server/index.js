@@ -8,7 +8,11 @@ import cookieParser from "cookie-parser";
 // import mongoose from "mongoose";
 import sinhvienRouter from "./routers/sinhvienRouter.js";
 import loginRouter from "./routers/loginRouter.js";
+import feeRouter from "./routers/feeRouter.js";
+
 import http from "http";
+import { log } from "console";
+
 dotenv.config({ path: ".env" });
 
 const app = express();
@@ -61,4 +65,5 @@ app.use(
 
 app.use("/login", loginRouter);
 app.use("/sinhvien", sinhvienRouter);
+app.use("/fee", feeRouter);
 // app.use("/posts", posts);

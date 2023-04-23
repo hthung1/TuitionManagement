@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async';
 // @mui
 import { styled } from '@mui/material/styles';
 import { Link, Container, Typography, Divider, Stack, Button } from '@mui/material';
+import PropTypes from 'prop-types';
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -105,3 +106,6 @@ export default function LoginPage({ setToken }) {
     </>
   );
 }
+LoginPage.propTypes = {
+  setToken: PropTypes.func.isRequired,
+};

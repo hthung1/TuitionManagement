@@ -3,15 +3,19 @@ import { filter } from 'lodash';
 // import { sentenceCase } from 'change-case';
 import moment from 'moment';
 import { useState, useEffect } from 'react';
+
 // @mui
+import 'bootstrap/dist/css/bootstrap.min.css';
+// Bootstrap Bundle JS
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 import {
   Card,
   Table,
   Stack,
   Paper,
   Avatar,
-  // Button,
   Popover,
+  Button,
   Checkbox,
   TableRow,
   MenuItem,
@@ -23,12 +27,15 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+import Form from 'react-bootstrap/Form';
+import Modal from 'react-bootstrap/Modal';
 // components
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+
 // mock
 // import USERLIST from '../_mock/user';
 
@@ -78,7 +85,11 @@ function applySortFilter(array, comparator, query) {
 export default function UserPage() {
   const [open, setOpen] = useState(null);
 
+  const [data, setData] = useState();
+
   const [page, setPage] = useState(0);
+
+  const [clickModal, setClickModal] = useState();
 
   const [order, setOrder] = useState('asc');
 
@@ -91,18 +102,22 @@ export default function UserPage() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [bills, setBills] = useState([]);
-  // console.log(bills);
+
+  const [modalShow, setModalShow] = useState(false);
+
+  const [change, setChange] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:5000/sinhvien`, { withCredentials: true, credentials: 'include' })
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
         setBills(res);
       });
-  }, []);
-  const handleOpenMenu = (event) => {
+    setChange(false);
+  }, [change]);
+  const handleOpenMenu = (event, item) => {
     setOpen(event.currentTarget);
+    setData(item);
   };
 
   const handleCloseMenu = () => {
@@ -153,11 +168,184 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
+  const AddFee = () => {
+    setModalShow(true);
+    setClickModal(0);
+    setOpen(null);
+  };
+  const EditFee = () => {
+    setModalShow(true);
+    setClickModal(1);
+    setOpen(null);
+  };
+  const DeleteFee = () => {
+    setModalShow(true);
+    setClickModal(2);
+    setOpen(null);
+  };
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - bills.length) : 0;
 
   const filteredUsers = applySortFilter(bills, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
+
+  const tokenString = sessionStorage.getItem('token');
+  const userToken = JSON.parse(tokenString);
+  // const [fullscreen, setFullscreen] = useState('sm-down');
+  function AddModal(props) {
+    const [money, setMoney] = useState('5.000.000');
+    const clickAddButton = () => {
+      setChange(true);
+      fetch('http://localhost:5000/fee', {
+        method: 'POST',
+        withCredentials: true,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ masv: data.masv, money }),
+      });
+    };
+    return (
+      <Modal style={{ marginLeft: 100 }} {...props} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">Thu Phí</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Người thu</Form.Label>
+              <Form.Control
+                placeholder={
+                  userToken?.token[0] === 1
+                    ? 'Nguyễn Văn B'
+                    : userToken?.token[0] === 2
+                    ? 'Nguyễn Văn C'
+                    : 'Nguyễn Văn A'
+                }
+                disabled
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mã sinh viên</Form.Label>
+              <Form.Control type="text" value={data?.masv} placeholder="Mã sinh viên" />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Số tiền</Form.Label>
+              <Form.Control
+                type="text"
+                onChange={(e) => setMoney(e?.target.value)}
+                value={money}
+                placeholder="Số tiền"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Form onClick={props.onHide}>
+            <Button sx={{ color: 'error.main' }}>Không</Button>
+            <Button sx={{ color: 'success.main' }} onClick={clickAddButton}>
+              Nộp
+            </Button>
+          </Form>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
+  function EditModal(props) {
+    const [money, setMoney] = useState(data?.SoTien);
+    const clickEditButton = () => {
+      setChange(true);
+      fetch('http://localhost:5000/fee', {
+        method: 'PATCH',
+        withCredentials: true,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ masv: data.masv, money }),
+      });
+    };
+    return (
+      <Modal style={{ marginLeft: 100 }} {...props} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">Sửa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Người thu</Form.Label>
+              <Form.Control
+                placeholder={
+                  userToken?.token[0] === 1
+                    ? 'Nguyễn Văn B'
+                    : userToken?.token[0] === 2
+                    ? 'Nguyễn Văn C'
+                    : 'Nguyễn Văn A'
+                }
+                disabled
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mã sinh viên</Form.Label>
+              <Form.Control type="text" value={data?.masv} placeholder="Mã sinh viên" disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Số tiền</Form.Label>
+              <Form.Control
+                type="text"
+                onChange={(e) => setMoney(e?.target.value)}
+                value={money}
+                placeholder="Số tiền"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Form onClick={props.onHide}>
+            <Button sx={{ color: 'error.main' }}>Không</Button>
+            <Button sx={{ color: 'success.main' }} onClick={clickEditButton}>
+              Sửa
+            </Button>
+          </Form>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+  function DeleteModal(props) {
+    const clickDeleteButton = () => {
+      setChange(true);
+      fetch('http://localhost:5000/fee', {
+        method: 'DELETE',
+        withCredentials: true,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ masv: data.masv }),
+      });
+    };
+    return (
+      <Modal style={{ marginLeft: 100 }} {...props} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">Xóa</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Bạn muốn xóa hóa đơn có mã sinh viên {data.masv} ?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Form onClick={props.onHide}>
+            <Button sx={{ color: 'error.main' }}>Không</Button>
+            <Button sx={{ color: 'success.main' }} onClick={clickDeleteButton}>
+              Xóa
+            </Button>
+          </Form>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
 
   return (
     <>
@@ -168,11 +356,25 @@ export default function UserPage() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            {/* {bills.mak} */}
+            {userToken?.token[0] === 1 ? 'KHMT' : userToken?.token[0] === 2 ? 'KTMT&DT' : 'ALL'}
           </Typography>
-          {/* <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          {/* <Button
+            variant="contained"
+            onClick={() => {
+              setModalShow(true);
+            }}
+            startIcon={<Iconify icon="eva:plus-fill" />}
+          >
             New User
           </Button> */}
+
+          {clickModal === 1 ? (
+            <EditModal show={modalShow} onHide={() => setModalShow(false)} />
+          ) : clickModal === 2 ? (
+            <DeleteModal show={modalShow} onHide={() => setModalShow(false)} />
+          ) : (
+            <AddModal show={modalShow} onHide={() => setModalShow(false)} />
+          )}
         </Stack>
 
         <Card>
@@ -224,7 +426,7 @@ export default function UserPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, item)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -295,15 +497,24 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
-        </MenuItem>
+        {!data?.NguoiThu ? (
+          <MenuItem sx={{ color: 'success.main' }} onClick={() => AddFee()}>
+            <Iconify icon={'eva:checkmark-circle-fill'} sx={{ mr: 2 }} />
+            Nộp
+          </MenuItem>
+        ) : null}
+        {data?.NguoiThu ? (
+          <div>
+            <MenuItem onClick={() => EditFee()}>
+              <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
+              Sửa
+            </MenuItem>
+            <MenuItem sx={{ color: 'error.main' }} onClick={() => DeleteFee()}>
+              <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
+              Xóa
+            </MenuItem>
+          </div>
+        ) : null}
       </Popover>
     </>
   );

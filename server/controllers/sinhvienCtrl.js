@@ -2,7 +2,7 @@ import pool from "../connect.js";
 const sinhvienCtrl = {
   getSinhvien: async (req, res) => {
     try {
-      const role = req.cookies.role.toString();
+      const role = req.cookies.role ? req.cookies.role.toString() : "";
       if (role == 1) {
         var query = "where lop.MaK = 'KHMT'";
       } else if (role == 2) {
@@ -10,7 +10,6 @@ const sinhvienCtrl = {
       } else {
         var query = "";
       }
-      console.log(query);
       // await pool.connect();
       const result = await pool
         .request()
